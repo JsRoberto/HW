@@ -9,9 +9,9 @@ library(ggplot2)
 
 data("AirPassengers")
 
-anos.prev <- 3
+ap <- 3
 s <- 12
-h <- s*anos.prev
+h <- s*ap
 Zcplt <- AirPassengers
 Zmdl <- Zcplt[1:(length(Zcplt)-h)]
 
@@ -68,35 +68,40 @@ Zprev2 <- c(rep(NA,length(Zmdl)),
 rest <- (length(Zmdl)+1):length(Zcplt)
 #--------------------------------------------------------------------------
 # Gráficos utilizando ggplot2
-dataAP1 <- data.frame(Time = 1:length(Zmdl), Data = Zmdl, isin = "Dados")
-dataAP2 <- data.frame(Time = (s+1):length(Zmdl), Dados = Zfit,
+dataAP1 <- data.frame(Time = 1:length(Zcplt), Data = Zcplt, isin = "Dados")
+dataAP2 <- data.frame(Time = (s+1):length(Zmdl), Data = Zfit,
                       isin = "Ajuste")
-dataAP3 <- data.frame(Time = rest, Dados = Zcplt[rest],
-                      isin = "Test Prev")
-dataAP4 <- data.frame(Time = rest, Dados = Zprev1,
+dataAP3 <- data.frame(Time = rest, Data = Zprev1,
                       isin = "Prev OTD")
-dataAP5 <- data.frame(Time = rest, Dados = Zprev2,
+dataAP4 <- data.frame(Time = rest, Data = Zprev2,
                       isin = "Prev UPD")
 
-dataAPprevOTD <- rbind(dataAP1, dataAP2, dataAP3, dataAP4)
-dataAPprevUPD <- rbind(dataAP1, dataAP2, dataAP3, dataAP5)
-dataAPprevs <- rbind(dataAP3, dataAP4, dataAP5)
+dataAPprevOTD <- rbind(dataAP1, dataAP2, dataAP3)
+dataAPprevUPD <- rbind(dataAP1, dataAP2, dataAP4)
+dataAPprevs <- rbind(dataAP1[rest,], dataAP3, dataAP4)
 
-p1 <- ggplot(dataAPprevOTD, aes(x = Time, y = Data)) +
-      geom_line(color = "cyan2", size = 1.1) +
-      geom_line(mapping = aes(y = Fitted), color = "darkorange",
-                size = 1.1) +
-      geom_vline(xintercept = length(Zmdl), lty = 2) +
-      
-      
+p1 <- ggplot(dataAPprevOTD, aes(x=Time, y=Data, color=isin))
+      #geom_smooth(aes(x=Time, y=Data, ymax=Data+2*sd(Data), ymin=Data-2*sd(Data)), 
+      #            data = df5, colour = 'cyan2', stat = 'identity') +
+      #scale_x_continuous(breaks = seq(1, length(Zcplt), by = 6),
+      #                   labels = 
+      #                         paste0(rep(c("Jan","Jul"),
+      #                                    end(Zcplt)[1]-start(Zcplt)[1]+1),
+      #                                seq(start(Zcplt)[1], end(Z)[1]-ap,
+      #                                    by = 2))) +
 
-      
-      geom_line(mapping = aes(y = Prev_otd), color = "darkslategray4",
-                size = 1.1)
-      
+p2 <- ggplot(dataAPprevUPD, aes(x=Time, y=Data, color=isin))
 
+p3 <- ggplot(dataAPprevs, aes(x=Time, y=Data, color=isin))
 
+conf <- scale_color_manual(values = c("cyan2", "darkorange",
+                                        "darkslategray4")) +
+        geom_line(size = 1.1) +
+        geom_vline(xintercept = length(Zmdl), lty = 2) +
+        labs(title = "Suavização Exponencial - Método de Holt-Winters",
+             x = "Tempo (anos)", y = "Nº de Passageiros (1000s)")      
 
-
-
+p1 + conf
+p2 + conf
+p3 + conf
 
