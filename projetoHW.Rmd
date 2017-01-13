@@ -1,7 +1,62 @@
-#--------------------------------------------------------------------------
-# Séries Temporais - Suavização exponencial pelo método de Holt-Winters
-#--------------------------------------------------------------------------
+---
+title: "Untitled"
+author: "José Roberto Sobrinho Lima \n Luana Gonçalvez"
+date: "13 de janeiro de 2017"
+fontsize: 12 pt
+output: pdf_document
+---
 
+```{r setoptions, echo = FALSE}
+knitr::opts_chunk$set(warning = FALSE, echo = FALSE, results = "hide")
+```
+
+***
+##1. INTRODUÇÃO  
+
+##2. OBJETIVOS  
+
+##3. MATERIAIS E MÉTODOS  
+
+Em linguagem R, há duas formas consolidadas de realizar previsões pelo
+método de _**Holt-Winters**_: a função _HoltWinters()_, disponível já a
+partir da instalação básica do software; e a função _ets()_, que pertence
+ao pacote _forecast_.  
+
+A escolha da função _ets()_ não se deu ao acaso: ela possui mais opções e 
+geralmente é uma ferramenta mais poderosa. O formato da função é  
+
+$$
+\mathrm{ets(ts, ~ model= "ZZZ")}
+$$  
+
+onde _ts_ é uma série temporal e o modelo é especificado por três letras,
+sendo $A = \mathrm{aditivo}$, $M = \mathrm{multiplicativo}$,
+$N = \mathrm{nenhum}$ e $Z = \mathrm{selecionado ~ automaticamente}$, cuja
+ordem denota o tipo de erro, o tipo de tendência e o tipo de sazonalidade.  
+
+A suavização exponencial de _**Holt-Winters**_ é um modelo exponencial
+capaz de ajustar uma série temporal que apresenta componentes de nível,
+tendência e sazonalidade. Por isso também é conhecida como 
+_modelo exponencial triplo_.  
+
+
+##4. RESULTADOS E DISCUSSÕES  
+
+###4.2. COMPARAÇÃO COM OS RESULTADOS DE _FORECAST_  
+
+Nesta seção, realizaremos a comparação entre (1) os resultados obtidos pela
+nossa implementação do algoritmo de _**Holt-Winters**_ (disponível online 
+em [projetoHW.R][1] e em anexo) e (2) aqueles obtidos pela aplicação do
+pacote [forecast][2] mediante função _ets()_.  
+
+A nossa implementação do algoritmo de _**Holt-Winters**_ produziu 
+resultados diversos aos do pacote _forecast_. A justificativa se encontra
+em dois fatos: tanto as constantes de suavização geradas automaticamente
+pela função _forecast::ets()_ quando os parâmetros iniciais para o cálculo
+das variáveis das equações de estivamativa, ambos diferem em relação ao
+nosso código. Vejamos  
+
+```{r hideCode1}
 # Definindo a biblioteca
 .libPaths(
       "C:/Users/JoséRoberto/AppData/Roaming/SPB_16.6/R/win-library/3.2")
@@ -14,9 +69,70 @@ s <- 12 # frequência Sazonal
 h <- s*ap # quant. meses a serem previstos
 Zcplt <- AirPassengers # Série completa
 Zmdl <- Zcplt[1:(length(Zcplt)-h)] # Séria utilizada na modelagem
+```
+
+```{r, echo=TRUE, results="markup"}
+# Comparação com os dados da função ets(ts, model="AAA")
+# "Zmdl" é a série utilizada na modelagem
+library(forecast)
+fit <- ets(ts(Zmdl, start = c(1949,1), frequency = 12), model = "AAA")
+fit
+```  
+
+Percebam que os parâmetros $\mathrm{alpha}$, $\mathrm{beta}$ e
+$\mathrm{gamma}$ correspondem aos parâmetros A, B e C (relaciodados a nível
+Z(t), tendência T(t) e sazonalidade F(t), respectivamente). Além disso, os 
+parâmetros iniciais são $l$ (nível z), $b$ (tendência t) e $s$ (
+sazonalidade f).
+
+Em nossa implementação, utilizamos os seguintes dados:  
+
+```{r hideCode2}
+# Ajuste da modelagem - Suavização Exponencial
+
+# Equações de recorrência - parâmetros iniciais
+z <- c(rep(NA, s-1), mean(Zmdl[1:s])) # Nível inicial z
+
+t <- c(rep(NA, s-1), 0) # Tendência inicial t
+
+f <- Zmdl[1:s]-z[s] # Sazonalidade inicial f
+
+# Constantes de suavização
+A <- 0.25
+C <- 0.02
+D <- 0.9
+```  
+
+
+
+##5. CONSIDERAÇÕES FINAIS  
+
+
+
+##6. CÓDIGO EM ANEXO - LINGUAGEM R  
+
+```{r}
+# Definindo a biblioteca
+.libPaths(
+      "C:/Users/JoséRoberto/AppData/Roaming/SPB_16.6/R/win-library/3.2")
+```
+
+```{r AllCode, echo=TRUE, results="hide"}
+#--------------------------------------------------------------------------
+# Séries Temporais - Suavização exponencial pelo método de Holt-Winters
+#--------------------------------------------------------------------------
+
+# Acessando a série que será analisada
+data("AirPassengers")
+
+ap <- 3 # Anos a serem Previstos
+s <- 12 # frequência Sazonal
+h <- s*ap # quantidade de meses a serem previstos
+Zcplt <- AirPassengers # Série completa
+Zmdl <- Zcplt[1:(length(Zcplt)-h)] # Séria utilizada na modelagem
 
 #--------------------------------------------------------------------------
-# Ajuste da modelagem - Suavização exponencial
+# Ajuste da modelagem - Suavização Exponencial
 
 # Equações de recorrência - parâmetros iniciais
 
@@ -70,7 +186,6 @@ Zprev2 <- c(Zprev2, (z + t + f)[m])
 #--------------------------------------------------------------------------
 # Gráficos utilizando o pacote ggplot2
 
-library(ggplot2)
 dataAP <- data.frame(
       Date = rep(1:length(Zcplt), 4),
       Data = as.numeric(c(Zcplt, Zfit, Zprev1, Zprev2)),
@@ -122,32 +237,18 @@ p3 <- ggplot(dataAPprevBOTH, aes(x=Date, y=Data, color=Type)) +
             limits = c(length(Zmdl), length(Zcplt))) +
       labs(title = "Suavização Exponencial - Método de Holt-Winters",
            x = "Tempo (anos)", y = "Nº de Passageiros (1000s)")
+```
 
-#__________________________________________________________________________
-#--------------------------------------------------------------------------
-# Comparação com os dados da função ets(ts, model="AAA")
-library(forecast)
-fit <- ets(ts(Zmdl, start = c(1949,1), frequency = 12), model = "AAA")
-pred <- forecast(fit, h)
-pred
-
-# Gráfico 4 - Comparação com os resultados do pacote forecast
-
-forecastPrev <- data.frame(Date = m, Data = pred$mean, Type = "Prev FCST")
-dataAPforecast <- rbind(dataAPprevBOTH, forecastPrev)
-p4 <- ggplot(dataAPforecast, aes(x=Date, y=Data, color=Type)) +
-      geom_line(size = 1.1) +
-      scale_color_manual(
-            values = c("cyan2", "darkorange", "darkslategray4", "red3")) +
-      scale_x_continuous(
-            breaks = seq(1, length(Zcplt), by = 4),
-            labels = paste(rep(c("Jan","May","Sep"),
-                               end(Zcplt)[1]-start(Zcplt)[1]+1),
-                           sort(rep(start(Zcplt)[1]:end(Zcplt)[1], 3))),
-            limits = c(length(Zmdl), length(Zcplt))) +
-      labs(title = "Suavização Exponencial - Método de Holt-Winters",
-           x = "Tempo (anos)", y = "Nº de Passageiros (1000s)")
+##7. BIBLIOGRAFIA  
 
 
+
+
+***
+[1]: https://raw.githubusercontent.com/JsRoberto/HW/master/projetoHW.R "projetoHW.R"  
+
+[2]: https://cran.r-project.org/web/packages/forecast/forecast.pdf "forecast"  
+
+[3]: 
 
 
