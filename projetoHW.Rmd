@@ -1,6 +1,6 @@
 ---
 title: "Untitled"
-author: "José Roberto Sobrinho Lima \n Luana Gonçalvez"
+author: "Caio Bentes Sanches, José Roberto Sobrinho Lima, Luana Gonçalvez, Marilete do Socorro Caridade Holles & Mateus da Mota Cardoso da Cruz"
 date: "13 de janeiro de 2017"
 fontsize: 12 pt
 output: pdf_document
@@ -13,7 +13,26 @@ knitr::opts_chunk$set(warning = FALSE, echo = FALSE, results = "hide")
 ***
 ##1. INTRODUÇÃO  
 
+Os modelos de suavização exponencial tem como característica decompor uma
+série temporal em componentes, suavizar seus valores anteriores (utilizando
+pesos diferentes que decaem exponencialmente com o tempo) e depois recompor
+as componentes para fazer as previsões. As três componentes na suavização
+exponencial são: nível, tendência e sazonalidade.  
+
+O modelo de Holt-Winters se tornou, desde sua criação em 1960, um dos
+principais métodos de previsão univariados existentes, tanto por sua
+simplicidade de aplicação (SOUZA et al, 2008) como pelos bons resultados
+obtidos empiricamente com diversas séries temporais.
+
+
 ##2. OBJETIVOS  
+
+Construção de um modelo de tendência e sazonalidade para a série temporal
+descrita acima utilizando o método de suavização de Holt-Winters, assim 
+como, análise do modelo baseado no erro médio quadrático normalizado, média
+e variância dos resíduos e previsão dos dados para o próximo período
+utilizando o modelo levantado, comparação com os dados medidos e com o
+pacote “Forecast” do R.
 
 ##3. MATERIAIS E MÉTODOS  
 
@@ -32,12 +51,27 @@ $$
 onde _ts_ é uma série temporal e o modelo é especificado por três letras,
 sendo $A = \mathrm{aditivo}$, $M = \mathrm{multiplicativo}$,
 $N = \mathrm{nenhum}$ e $Z = \mathrm{selecionado ~ automaticamente}$, cuja
-ordem denota o tipo de erro, o tipo de tendência e o tipo de sazonalidade.  
+ordem denota os tipos de erro, tendência e sazonalidade 
+(KABACOFF, 2015, p.352-9).  
 
 A suavização exponencial de _**Holt-Winters**_ é um modelo exponencial
 capaz de ajustar uma série temporal que apresenta componentes de nível,
-tendência e sazonalidade. Por isso também é conhecida como 
-_modelo exponencial triplo_.  
+tendência e sazonalidade. Esse método de suavização exponencial é 
+utilizado, pois, para séries temporais sazonais com período $s$ que
+possuam um comportamento mais complexo.  
+
+O método de Holt-Winters é descrito mediante as componentes de sazonalidade 
+($F_t$), tendência ($T_t$), nível médio ($\mi_t$) e erro de estimação do
+modelo, que se aproxima do comportamento de um ruído branco $a_t$ com média
+nula $E(a_t)=0$ e variância constante $\sigma_a^2$. O modelo utilizado é o
+aditivo:  
+
+$$
+Z_t ~ = ~ \mi_t + T_t + F_t + a_t ~~ (1)
+$$  
+
+Uma forma de calcular as componentes descritas na equação (1) é dada pelas três equações a seguir:
+
 
 
 ##4. RESULTADOS E DISCUSSÕES  
