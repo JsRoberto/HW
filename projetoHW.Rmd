@@ -71,9 +71,8 @@ Zcplt <- AirPassengers # Série completa
 Zmdl <- Zcplt[1:(length(Zcplt)-h)] # Séria utilizada na modelagem
 ```
 
-```{r, echo=TRUE, results="markup"}
+```{r forecast, results="markup"}
 # Comparação com os dados da função ets(ts, model="AAA")
-# "Zmdl" é a série utilizada na modelagem
 library(forecast)
 fit <- ets(ts(Zmdl, start = c(1949,1), frequency = 12), model = "AAA")
 pred <- forecast(fit, h)
@@ -83,8 +82,8 @@ fit
 Percebam que os parâmetros $\mathrm{alpha}$, $\mathrm{beta}$ e
 $\mathrm{gamma}$ correspondem aos parâmetros A, B e C (relaciodados a nível
 Z(t), tendência T(t) e sazonalidade F(t), respectivamente). Além disso, os 
-parâmetros iniciais são $l$ (nível z), $b$ (tendência t) e $s$ (
-sazonalidade f).
+parâmetros iniciais são $l$ (nível z), $b$ (tendência t) e $s$ 
+(sazonalidade f).
 
 Em nossa implementação, utilizamos os seguintes dados:  
 
@@ -107,16 +106,16 @@ D <- 0.9
 
 ```{r SpIs_ours, echo=TRUE, results="markup"}
 #Constantes de suavização
-A; B; C
+A; C; D
 
 #Parâmetros iniciais
-z; t; f
+z[s]; t[s]; f
 ```  
 
-Para estes dados, temos os seguintes resultados gráficos  
+Para estes dados, temos os seguintes resultados gráficos:  
 
 ```{r hideCode3}
-# Equações de estimativa - nível z(t), tendência te(t) e sazonalidade sa(t) 
+# Equações de estimativa - nível Z(t), tendência T(t) e sazonalidade F(t) 
 for (i in (s+1):length(Zmdl)) {
       z[i] <- A*(Zmdl[i]-f[i-s])+(1-A)*(z[i-1]+t[i-1])
       t[i] <- C*(z[i]-z[i-1])+(1-C)*t[i-1]
@@ -143,7 +142,7 @@ for (p in 1:h) {
 
 m <- (length(Zmdl)+1):length(Zcplt) # m indica os meses a serem previstos
 for (i in m) {
-      Znew <- z[i-1] + te[i-1] + sa[i-s]
+      Znew <- z[i-1] + t[i-1] + f[i-s]
       z[i] <- A*(Znew-f[i-s])+(1-A)*(z[i-1]+t[i-1])
       t[i] <- C*(z[i]-z[i-1])+(1-C)*t[i-1]
       f[i] <- D*(Znew-z[i])+(1-D)*f[i-s]
@@ -200,7 +199,7 @@ p3 <- ggplot(dataAPprevBOTH, aes(x=Date, y=Data, color=Type)) +
             values = c("cyan2", "darkorange", "darkslategray4")) +
       scale_x_continuous(
             breaks = seq(1, length(Zcplt), by = 4),
-            labels = paste(rep(c("Jan","May","Sep"),
+            labels = paste0(rep(c("Jan/","May/","Sep/"),
                                end(Zcplt)[1]-start(Zcplt)[1]+1),
                            sort(rep(start(Zcplt)[1]:end(Zcplt)[1], 3))),
             limits = c(length(Zmdl), length(Zcplt))) +
@@ -216,20 +215,26 @@ p4 <- ggplot(dataAPforecast, aes(x=Date, y=Data, color=Type)) +
             values = c("cyan2", "darkorange", "darkslategray4", "red3")) +
       scale_x_continuous(
             breaks = seq(1, length(Zcplt), by = 4),
-            labels = paste(rep(c("Jan","May","Sep"),
+            labels = paste0(rep(c("Jan/","May/","Sep/"),
                                end(Zcplt)[1]-start(Zcplt)[1]+1),
                            sort(rep(start(Zcplt)[1]:end(Zcplt)[1], 3))),
             limits = c(length(Zmdl), length(Zcplt))) +
-      labs(title = "Suavização Exponencial - Método de Holt-Winters",
-           x = "Tempo (anos)", y = "Nº de Passageiros (1000s)")
+      labs(title = paste("Método de Holt-Winters \n",
+                         "Comparação com o pacote forecast"),
+           x = "Tempo (mês/ano)", y = "Nº de Passageiros (1000s)")
 ```  
 
-```{r graphCode3, echo=TRUE, results="markup"}
-# Gráficos 1 a 4
-# Previsões sem e com atualizações e comparação entre previsões
-p1; p2; p3
+```{r graphCode3, echo=TRUE, results="markup", fig.align="center", fig.width=10}
+# Gráfico 1 - Previsão sem atualização (outdated)
+p1
 
-## Gráfico 4 - Comparação com os resultados do pacote forecast
+# Gráfico 2 - Previsão com atualização (updated)
+p2
+
+# Gráfico 3 - Comparação entre previsões
+p3
+
+# Gráfico 4 - Comparação com os resultados do pacote forecast
 p4
 ```  
 
@@ -253,7 +258,20 @@ f <- c(22.1981, -43.8653, -17.7495, 12.8625, 43.4763, 50.1649, 26.7827,
 A <- 0.9999
 C <- 0.0004
 D <- 0.0004
+```
 
+
+```{r SpIs_forecast, echo=TRUE, results="markup"}
+#Constantes de suavização
+A; C; D
+
+#Parâmetros iniciais
+z[s]; t[s]; f
+```  
+
+Dessa forma, produzimos o seguinte resultado para o quarto gráfico:  
+
+```{r hideCode6}
 # Equações de estimativa - nível z(t), tendência te(t) e sazonalidade sa(t) 
 for (i in (s+1):length(Zmdl)) {
       z[i] <- A*(Zmdl[i]-f[i-s])+(1-A)*(z[i-1]+t[i-1])
@@ -281,7 +299,7 @@ for (p in 1:h) {
 
 m <- (length(Zmdl)+1):length(Zcplt) # m indica os meses a serem previstos
 for (i in m) {
-      Znew <- z[i-1] + te[i-1] + sa[i-s]
+      Znew <- z[i-1] + t[i-1] + f[i-s]
       z[i] <- A*(Znew-f[i-s])+(1-A)*(z[i-1]+t[i-1])
       t[i] <- C*(z[i]-z[i-1])+(1-C)*t[i-1]
       f[i] <- D*(Znew-z[i])+(1-D)*f[i-s]
@@ -314,26 +332,17 @@ p4 <- ggplot(dataAPforecast, aes(x=Date, y=Data, color=Type)) +
             values = c("cyan2", "darkorange", "darkslategray4", "red3")) +
       scale_x_continuous(
             breaks = seq(1, length(Zcplt), by = 4),
-            labels = paste(rep(c("Jan","May","Sep"),
+            labels = paste0(rep(c("Jan/","May/","Sep/"),
                                end(Zcplt)[1]-start(Zcplt)[1]+1),
                            sort(rep(start(Zcplt)[1]:end(Zcplt)[1], 3))),
             limits = c(length(Zmdl), length(Zcplt))) +
-      labs(title = "Suavização Exponencial - Método de Holt-Winters",
-           x = "Tempo (anos)", y = "Nº de Passageiros (1000s)")
+      labs(title = paste("Método de Holt-Winters \n",
+                         "Comparação com o pacote forecast"),
+           x = "Tempo (mês/ano)", y = "Nº de Passageiros (1000s)")
 ```  
 
-```{r SpIs_forecast, echo=TRUE, results="markup"}
-#Constantes de suavização
-A; B; C
-
-#Parâmetros iniciais
-z; t; f
-```  
-
-Dessa forma, produzimos o seguinte resultado para o quarto gráfico:  
-
-```{r graphCode5, echo=TRUE, results="markup"}
-## Gráfico 4 - Comparação com os resultados do pacote forecast
+```{r graphCode6, echo=TRUE, results="markup", fig.align="center", fig.width=10}
+# Gráfico 4 - Comparação com os resultados do pacote forecast
 p4
 ```
 
@@ -383,7 +392,7 @@ A <- 0.25 # 0.9999
 C <- 0.02 # 0.0004
 D <- 0.9  # 0.0004
 
-# Equações de estimativa - nível z(t), tendência te(t) e sazonalidade sa(t) 
+# Equações de estimativa - nível Z(t), tendência T(t) e sazonalidade F(t) 
 for (i in (s+1):length(Zmdl)) {
       z[i] <- A*(Zmdl[i]-f[i-s])+(1-A)*(z[i-1]+t[i-1])
       t[i] <- C*(z[i]-z[i-1])+(1-C)*t[i-1]
@@ -410,7 +419,7 @@ for (p in 1:h) {
 
 m <- (length(Zmdl)+1):length(Zcplt) # m indica os meses a serem previstos
 for (i in m) {
-      Znew <- z[i-1] + te[i-1] + sa[i-s]
+      Znew <- z[i-1] + t[i-1] + f[i-s]
       z[i] <- A*(Znew-f[i-s])+(1-A)*(z[i-1]+t[i-1])
       t[i] <- C*(z[i]-z[i-1])+(1-C)*t[i-1]
       f[i] <- D*(Znew-z[i])+(1-D)*f[i-s]
@@ -502,12 +511,9 @@ p4 <- ggplot(dataAPforecast, aes(x=Date, y=Data, color=Type)) +
 
 
 
-
 ***
 [1]: https://raw.githubusercontent.com/JsRoberto/HW/master/projetoHW.R "projetoHW.R"  
 
-[2]: https://cran.r-project.org/web/packages/forecast/forecast.pdf "forecast"  
-
-[3]: 
+[2]: https://cran.r-project.org/web/packages/forecast/forecast.pdf "forecast" 
 
 

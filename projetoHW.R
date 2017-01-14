@@ -35,7 +35,7 @@ A <- 0.25 # 0.9999
 C <- 0.02 # 0.0004
 D <- 0.9  # 0.0004
 
-# Equações de estimativa - nível z(t), tendência te(t) e sazonalidade sa(t) 
+# Equações de estimativa - nível Z(t), tendência T(t) e sazonalidade F(t) 
 for (i in (s+1):length(Zmdl)) {
       z[i] <- A*(Zmdl[i]-f[i-s])+(1-A)*(z[i-1]+t[i-1])
       t[i] <- C*(z[i]-z[i-1])+(1-C)*t[i-1]
@@ -62,7 +62,7 @@ for (p in 1:h) {
 
 m <- (length(Zmdl)+1):length(Zcplt) # m indica os meses a serem previstos
 for (i in m) {
-      Znew <- z[i-1] + te[i-1] + sa[i-s]
+      Znew <- z[i-1] + t[i-1] + f[i-s]
       z[i] <- A*(Znew-f[i-s])+(1-A)*(z[i-1]+t[i-1])
       t[i] <- C*(z[i]-z[i-1])+(1-C)*t[i-1]
       f[i] <- D*(Znew-z[i])+(1-D)*f[i-s]
@@ -119,7 +119,7 @@ p3 <- ggplot(dataAPprevBOTH, aes(x=Date, y=Data, color=Type)) +
             values = c("cyan2", "darkorange", "darkslategray4")) +
       scale_x_continuous(
             breaks = seq(1, length(Zcplt), by = 4),
-            labels = paste(rep(c("Jan","May","Sep"),
+            labels = paste0(rep(c("Jan/","May/","Sep/"),
                                end(Zcplt)[1]-start(Zcplt)[1]+1),
                            sort(rep(start(Zcplt)[1]:end(Zcplt)[1], 3))),
             limits = c(length(Zmdl), length(Zcplt))) +
@@ -142,12 +142,13 @@ p4 <- ggplot(dataAPforecast, aes(x=Date, y=Data, color=Type)) +
             values = c("cyan2", "darkorange", "darkslategray4", "red3")) +
       scale_x_continuous(
             breaks = seq(1, length(Zcplt), by = 4),
-            labels = paste(rep(c("Jan","May","Sep"),
+            labels = paste0(rep(c("Jan/","May/","Sep/"),
                                end(Zcplt)[1]-start(Zcplt)[1]+1),
                            sort(rep(start(Zcplt)[1]:end(Zcplt)[1], 3))),
             limits = c(length(Zmdl), length(Zcplt))) +
-      labs(title = "Suavização Exponencial - Método de Holt-Winters",
-           x = "Tempo (anos)", y = "Nº de Passageiros (1000s)")
+      labs(title = paste("Método de Holt-Winters \n",
+                         "Comparação com o pacote forecast"),
+           x = "Tempo (mês/ano)", y = "Nº de Passageiros (1000s)")
 
 
 
